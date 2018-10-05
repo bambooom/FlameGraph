@@ -696,7 +696,7 @@ my $inc = <<INC;
 	</linearGradient>
 </defs>
 <style type="text/css">
-	.func_g:hover { stroke:white; stroke-width:0.5; cursor:pointer; }
+	.func_g:hover { stroke:black; stroke-width:0.5; cursor:pointer; }
 </style>
 <script type="text/ecmascript">
 <![CDATA[
@@ -1117,8 +1117,7 @@ while (my ($id, $node) = each %Node) {
 		$text =~ s/</&lt;/g;
 		$text =~ s/>/&gt;/g;
 	}
-	# text inside rectangle -> light white
-	$im->stringTTF('rgba(255, 255, 255, 0.9)', $fonttype, $fontsize, 0.0, $x1 + 3, 3 + ($y1 + $y2) / 2, $text, "");
+	$im->stringTTF('rgba(0,0,0,0.9)', $fonttype, $fontsize, 0.0, $x1 + 3, 3 + ($y1 + $y2) / 2, $text, "");
 
 	$im->group_end($nameattr);
 }
