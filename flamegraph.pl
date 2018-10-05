@@ -225,7 +225,7 @@ if ($notestext =~ /[<>]/) {
 if ($colors eq "mem" or $colors eq "chain") {
 	$bgcolor1 = "#eeeeee"; $bgcolor2 = "#e0e0ff";
 }
-if ($colors =~ /^(io|wakeup|red|green|blue|aqua|yellow|purple|orange)$/) {
+if ($colors =~ /^(io|wakeup|red|green|blue|lightblue|aqua|yellow|purple|orange)$/) {
 	$bgcolor1 = "#f8f8f8"; $bgcolor2 = "#e8e8e8";
 }
 
@@ -459,6 +459,12 @@ sub color {
 		my $b = 215 + int(40 * $v1);
 		my $r = 10 + int(150 * $v2);
 		my $g = 100 + int(130 * $v3);
+		return "rgb($r,$g,$b)";
+	}
+	if (defined $type and $type eq "lightblue") {
+		my $b = 210 + int(30 * $v1);
+		my $r = 130 + int(110 * $v2);
+		my $g = 180 + int(60 * $v3);
 		return "rgb($r,$g,$b)";
 	}
 	if (defined $type and $type eq "yellow") {
@@ -697,6 +703,14 @@ my $inc = <<INC;
 </defs>
 <style type="text/css">
 	.func_g:hover { stroke:black; stroke-width:0.5; cursor:pointer; }
+	\@keyframes fadeIn {
+		from {
+  		  visibility: hidden;
+		}
+		to {
+  		  visibility: visible;
+		}
+	}
 </style>
 <script type="text/ecmascript">
 <![CDATA[
@@ -1086,11 +1100,13 @@ while (my ($id, $node) = each %Node) {
 	}
 
 	my $nameattr = { %{ $nameattr{$func}||{} } }; # shallow clone
+	my $delay = 2 * (1 - $y1/$imageheight) . 's';
 	$nameattr->{class}       ||= "func_g";
 	$nameattr->{onmouseover} ||= "s(this)";
 	$nameattr->{onmouseout}  ||= "c()";
 	$nameattr->{onclick}     ||= "zoom(this)";
 	$nameattr->{title}       ||= $info;
+	$nameattr->{style}       ||= "animation: fadeIn 0.1s linear $delay; animation-fill-mode: both;";
 	$im->group_start($nameattr);
 
 	my $color;
