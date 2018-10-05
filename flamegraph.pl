@@ -107,6 +107,7 @@ my $minwidth = 0.1;             # min function width, pixels
 my $nametype = "Function:";     # what are the names in the data?
 my $countname = "samples";      # what are the counts in the data?
 my $colors = "hot";             # color theme
+my $gradient = 0;				# if we use gradient colors sorted by height (default off)
 my $bgcolor1 = "#eeeeee";       # background color gradient start
 my $bgcolor2 = "#eeeeb0";       # background color gradient stop
 my $nameattrfile;               # file holding function attributes
@@ -142,6 +143,7 @@ USAGE: $0 [options] infile > outfile.svg\n
 	--colors PALETTE # set color palette. choices are: hot (default), mem,
 	                 # io, wakeup, chain, java, js, perl, red, green, blue,
 	                 # aqua, yellow, purple, orange
+	--gradient		 # use gradient colors
 	--hash           # colors are keyed by function name hash
 	--cp             # use consistent palette (palette.map)
 	--reverse        # generate stack-reversed flame graph
@@ -171,6 +173,7 @@ GetOptions(
 	'total=s'     => \$timemax,
 	'factor=f'    => \$factor,
 	'colors=s'    => \$colors,
+	'gradient'	  => \$gradient,
 	'hash'        => \$hash,
 	'cp'          => \$palette,
 	'reverse'     => \$stackreverse,
@@ -335,12 +338,14 @@ sub namehash {
 }
 
 sub color {
-	my ($type, $hash, $name) = @_;
+	my ($type, $hash, $name, $maxheight, $height) = @_;
 	my ($v1, $v2, $v3);
 
 	if ($hash) {
 		$v1 = namehash($name);
 		$v2 = $v3 = namehash(scalar reverse $name);
+	} elsif ($gradient) {
+		$v1 = $v2 = $v3 = 1 - $height/$maxheight;
 	} else {
 		$v1 = rand(1);
 		$v2 = rand(1);
@@ -451,9 +456,10 @@ sub color {
 		return "rgb($x,$g,$x)";
 	}
 	if (defined $type and $type eq "blue") {
-		my $b = 205 + int(50 * $v1);
-		my $x = 80 + int(60 * $v1);
-		return "rgb($x,$x,$b)";
+		my $b = 215 + int(40 * $v1);
+		my $r = 10 + int(150 * $v2);
+		my $g = 100 + int(130 * $v3);
+		return "rgb($r,$g,$b)";
 	}
 	if (defined $type and $type eq "yellow") {
 		my $x = 175 + int(55 * $v1);
@@ -690,7 +696,7 @@ my $inc = <<INC;
 	</linearGradient>
 </defs>
 <style type="text/css">
-	.func_g:hover { stroke:black; stroke-width:0.5; cursor:pointer; }
+	.func_g:hover { stroke:white; stroke-width:0.5; cursor:pointer; }
 </style>
 <script type="text/ecmascript">
 <![CDATA[
@@ -1097,7 +1103,7 @@ while (my ($id, $node) = each %Node) {
 	} elsif ($palette) {
 		$color = color_map($colors, $func);
 	} else {
-		$color = color($colors, $hash, $func);
+		$color = color($colors, $hash, $func, $imageheight, $y1);
 	}
 	$im->filledRectangle($x1, $y1, $x2, $y2, $color, 'rx="2" ry="2"');
 
@@ -1111,7 +1117,8 @@ while (my ($id, $node) = each %Node) {
 		$text =~ s/</&lt;/g;
 		$text =~ s/>/&gt;/g;
 	}
-	$im->stringTTF($black, $fonttype, $fontsize, 0.0, $x1 + 3, 3 + ($y1 + $y2) / 2, $text, "");
+	# text inside rectangle -> light white
+	$im->stringTTF('rgba(255, 255, 255, 0.9)', $fonttype, $fontsize, 0.0, $x1 + 3, 3 + ($y1 + $y2) / 2, $text, "");
 
 	$im->group_end($nameattr);
 }
