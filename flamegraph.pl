@@ -458,8 +458,8 @@ sub color {
 	}
 	if (defined $type and $type eq "lightblue") {
 		my $b = 210 + int(30 * $v1);
-		my $r = 130 + int(110 * $v1);
-		my $g = 180 + int(60 * $v1);
+		my $r = 130 + int(100 * $v1);
+		my $g = 180 + int(50 * $v1);
 		return "rgb($r,$g,$b)";
 	}
 	if (defined $type and $type eq "yellow") {
