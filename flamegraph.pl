@@ -708,15 +708,33 @@ my $inc = <<INC;
 		}
 	}
 </style>
+<script type="text/javascript" xlink:href="https://d3js.org/d3.v4.min.js"></script>
 <script type="text/ecmascript">
 <![CDATA[
-	var details, searchbtn, matchedtxt, svg;
+	var details, searchbtn, matchedtxt, svg, outerGroup, rectGroup;
 	function init(evt) {
 		details = document.getElementById("details").firstChild;
 		searchbtn = document.getElementById("search");
 		matchedtxt = document.getElementById("matched");
 		svg = document.getElementsByTagName("svg")[0];
 		searching = 0;
+
+		outerGroup = d3.select("g.outer_g");
+		rectGroup = d3.selectAll("g.func_g");
+
+    	outerGroup
+			.call(d3.zoom()
+        .scaleExtent([1 / 2, 4])
+        .on("zoom", zoomed));
+	}
+
+	function zoomed() {
+		rectGroup.attr("transform", d3.event.transform);
+			var nodeList = rectGroup._groups[0];
+			//for (var i = 0; i < nodeList.length; i++) {
+			//	var g = nodeList[i];
+			//	update_text(g);
+			//}
 	}
 
 	// mouse-over for info
@@ -852,7 +870,7 @@ my $inc = <<INC;
 		var unzoombtn = document.getElementById("unzoom");
 		unzoombtn.style["opacity"] = "1.0";
 
-		var el = document.getElementsByTagName("g");
+		var el = document.getElementsByClassName('func_g');
 		for(var i=0;i<el.length;i++){
 			var e = el[i];
 			var a = find_child(e, "rect").attributes;
@@ -894,7 +912,7 @@ my $inc = <<INC;
 		var unzoombtn = document.getElementById("unzoom");
 		unzoombtn.style["opacity"] = "0.0";
 
-		var el = document.getElementsByTagName("g");
+		var el = document.getElementsByClassName('func_g');
 		for(i=0;i<el.length;i++) {
 			el[i].style["display"] = "block";
 			el[i].style["opacity"] = "1";
@@ -1050,6 +1068,8 @@ if ($palette) {
 	read_palette();
 }
 
+$im->include('<g class="outer_g">');
+
 # draw frames
 while (my ($id, $node) = each %Node) {
 	my ($func, $depth, $etime) = split ";", $id;
@@ -1117,7 +1137,7 @@ while (my ($id, $node) = each %Node) {
 	} else {
 		$color = color($colors, $hash, $func);
 	}
-	$im->filledRectangle($x1, $y1, $x2, $y2, $color, 'rx="2" ry="2" style="transition: all 1s;"');
+	$im->filledRectangle($x1, $y1, $x2, $y2, $color, 'rx="2" ry="2" style="transition: width,x 1s;"');
 
 	my $chars = int( ($x2 - $x1) / ($fontsize * $fontwidth));
 	my $text = "";
@@ -1129,11 +1149,12 @@ while (my ($id, $node) = each %Node) {
 		$text =~ s/</&lt;/g;
 		$text =~ s/>/&gt;/g;
 	}
-	$im->stringTTF('rgba(0,0,0,0.9)', $fonttype, $fontsize, 0.0, $x1 + 3, 3 + ($y1 + $y2) / 2, $text, "left", 'style="transition: all 1s;"');
+	$im->stringTTF('rgba(0,0,0,0.9)', $fonttype, $fontsize, 0.0, $x1 + 3, 3 + ($y1 + $y2) / 2, $text, "left", 'style="transition: width,x 1s;"');
 
 	$im->group_end($nameattr);
 }
 
+$im->include('</g>');
 print $im->svg;
 
 if ($palette) {
