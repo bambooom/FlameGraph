@@ -442,8 +442,9 @@ sub color {
 	# color palettes
 	if (defined $type and $type eq "red") {
 		my $r = 200 + int(55 * $v1);
-		my $x = 50 + int(80 * $v1);
-		return "rgb($r,$x,$x)";
+		my $g = 80 + int(150 * $v1);
+		my $b = 100 + int(130 * $v1);
+		return "rgb($r,$g,$b)";
 	}
 	if (defined $type and $type eq "green") {
 		my $g = 200 + int(55 * $v1);
@@ -1116,7 +1117,7 @@ while (my ($id, $node) = each %Node) {
 	} else {
 		$color = color($colors, $hash, $func);
 	}
-	$im->filledRectangle($x1, $y1, $x2, $y2, $color, 'rx="2" ry="2"');
+	$im->filledRectangle($x1, $y1, $x2, $y2, $color, 'rx="2" ry="2" style="transition: all 1s;"');
 
 	my $chars = int( ($x2 - $x1) / ($fontsize * $fontwidth));
 	my $text = "";
@@ -1128,7 +1129,7 @@ while (my ($id, $node) = each %Node) {
 		$text =~ s/</&lt;/g;
 		$text =~ s/>/&gt;/g;
 	}
-	$im->stringTTF('rgba(0,0,0,0.9)', $fonttype, $fontsize, 0.0, $x1 + 3, 3 + ($y1 + $y2) / 2, $text, "");
+	$im->stringTTF('rgba(0,0,0,0.9)', $fonttype, $fontsize, 0.0, $x1 + 3, 3 + ($y1 + $y2) / 2, $text, "left", 'style="transition: all 1s;"');
 
 	$im->group_end($nameattr);
 }
