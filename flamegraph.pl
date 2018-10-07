@@ -794,7 +794,7 @@ my $inc = <<INC;
             .style("opacity", .9);
         tooltip.attr("x", box.x + 10)
 			.attr("y", box.y - 28)
-		document.getElementById("tooltip-text").textContent = info;
+		document.getElementById("tooltip-text").textContent = info.replace(/\\([^(]*\\)\$/,"");
 	}
 	function c() {			// clear
 		details.nodeValue = ' ';
