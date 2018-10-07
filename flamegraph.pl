@@ -707,11 +707,27 @@ my $inc = <<INC;
   		  visibility: visible;
 		}
 	}
+	.tooltip-div {
+		position: absolute;
+    	text-align: center;
+    	width: 240px;
+    	height: 26px;
+    	padding: 2px;
+    	font: 12px sans-serif;
+    	background: #313131;
+    	border: 0px;
+    	border-radius: 8px;
+    	pointer-events: none;
+		color: white;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
 </style>
 <script type="text/javascript" xlink:href="https://d3js.org/d3.v4.min.js"></script>
 <script type="text/ecmascript">
 <![CDATA[
-	var details, searchbtn, matchedtxt, svg, outerGroup, rectGroup;
+	var details, searchbtn, matchedtxt, svg, outerGroup, rectGroup, tooltip;
 	function init(evt) {
 		details = document.getElementById("details").firstChild;
 		searchbtn = document.getElementById("search");
@@ -722,11 +738,14 @@ my $inc = <<INC;
 		outerGroup = d3.select("g.outer_g");
 		rectGroup = d3.selectAll("g.func_g");
 
-    	outerGroup
+    	// add zoom event
+		outerGroup
 			.call(d3.zoom()
-        	.scaleExtent([1, 50])
+        	.scaleExtent([1, 100])
         	.on("zoom", zooming)
 			.on("end", zoomed));
+
+		tooltip = d3.select("foreignObject.tooltip");
 	}
 
 	function zooming() {
@@ -767,9 +786,22 @@ my $inc = <<INC;
 	function s(node) {		// show
 		info = g_to_text(node);
 		details.nodeValue = "$nametype " + info;
+
+		// show tooltip
+		var box = node.getBoundingClientRect();
+		tooltip.transition()
+            .duration(200)
+            .style("opacity", .9);
+        tooltip.attr("x", box.x + 10)
+			.attr("y", box.y - 28)
+		document.getElementById("tooltip-text").textContent = info;
 	}
 	function c() {			// clear
 		details.nodeValue = ' ';
+		// clear tooltip
+		tooltip.transition()
+            .duration(500)
+            .style("opacity", 0);
 	}
 
 	// ctrl-F for search
@@ -1186,6 +1218,14 @@ while (my ($id, $node) = each %Node) {
 }
 
 $im->include('</g>');
+my $tooltip = <<INC;
+<foreignObject class="tooltip" width="250" height="30" style="opacity: 0;">
+	<div xmlns="http://www.w3.org/1999/xhtml" class="tooltip-div">
+		<p xmlns="http://www.w3.org/1999/xhtml" id="tooltip-text"></p>
+	</div>
+</foreignObject>
+INC
+$im->include($tooltip);
 print $im->svg;
 
 if ($palette) {
