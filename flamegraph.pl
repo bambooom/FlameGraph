@@ -724,7 +724,7 @@ my $inc = <<INC;
 
     	outerGroup
 			.call(d3.zoom()
-        	.scaleExtent([1, 10])
+        	.scaleExtent([1, 50])
         	.on("zoom", zooming)
 			.on("end", zoomed));
 	}
@@ -757,7 +757,7 @@ my $inc = <<INC;
 
 		var rule = document.styleSheets[0]['cssRules'][0];
 		if (scale > 1) {
-			rule.style.strokeWidth = Math.max(0.5 / scale, 0.1);
+			rule.style.strokeWidth = 0.5 / scale;
 		} else {
 			rule.style.strokeWidth = 0.5;
 		}
