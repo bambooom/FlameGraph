@@ -724,17 +724,43 @@ my $inc = <<INC;
 
     	outerGroup
 			.call(d3.zoom()
-        .scaleExtent([1 / 2, 4])
-        .on("zoom", zoomed));
+        	.scaleExtent([1, 10])
+        	.on("zoom", zooming)
+			.on("end", zoomed));
+	}
+
+	function zooming() {
+		rectGroup.attr("transform", d3.event.transform);
+		var nodeList = rectGroup._groups[0];
+		for (var i = 0; i < nodeList.length; i++) {
+			var g = nodeList[i];
+			var transform = g.attributes["transform"].value;
+			var scale = parseFloat(transform.match(/scale\\((.*)\\)/)[1]);
+			var t = find_child(g, "text");
+			if (scale > 1) {
+				t.attributes['font-size'].value = $fontsize / scale;
+			} else {
+				t.attributes['font-size'].value = $fontsize;
+			}
+		}
 	}
 
 	function zoomed() {
-		rectGroup.attr("transform", d3.event.transform);
-			var nodeList = rectGroup._groups[0];
-			//for (var i = 0; i < nodeList.length; i++) {
-			//	var g = nodeList[i];
-			//	update_text(g);
-			//}
+		var scale;
+		var nodeList = rectGroup._groups[0];
+		for (var i = 0; i < nodeList.length; i++) {
+			var g = nodeList[i];
+			var transform = g.attributes["transform"].value;
+			scale = parseFloat(transform.match(/scale\\((.*)\\)/)[1]);
+			update_text(g);
+		}
+
+		var rule = document.styleSheets[0]['cssRules'][0];
+		if (scale > 1) {
+			rule.style.strokeWidth = Math.max(0.5 / scale, 0.1);
+		} else {
+			rule.style.strokeWidth = 0.5;
+		}
 	}
 
 	// mouse-over for info
@@ -787,23 +813,28 @@ my $inc = <<INC;
 	function update_text(e) {
 		var r = find_child(e, "rect");
 		var t = find_child(e, "text");
-		var w = parseFloat(r.attributes["width"].value) -3;
+		var transform = e.attributes["transform"].value;
+		var scale = transform ? parseInt(transform.match(/scale\\((.*)\\)/)[1]) : 1;
+		var w = parseFloat(r.attributes["width"].value)*scale -3;
 		var txt = find_child(e, "title").textContent.replace(/\\([^(]*\\)\$/,"");
 		t.attributes["x"].value = parseFloat(r.attributes["x"].value) +3;
 
+		var fontSize = t.attributes['font-size'].value;
+		var fontWidth = 6.7; // rough observation
+
 		// Smaller than this size won't fit anything
-		if (w < 2*$fontsize*$fontwidth) {
+		if (w < 3 * fontWidth) {
 			t.textContent = "";
 			return;
 		}
 
 		t.textContent = txt;
 		// Fit in full text width
-		if (/^ *\$/.test(txt) || t.getSubStringLength(0, txt.length) < w)
+		if (/^ *\$/.test(txt) || fontWidth * txt.length < w)
 			return;
 
 		for (var x=txt.length-2; x>0; x--) {
-			if (t.getSubStringLength(0, x+2) <= w) {
+			if ((x + 2) * fontWidth < w) {
 				t.textContent = txt.substring(0,x) + "..";
 				return;
 			}
@@ -1137,7 +1168,7 @@ while (my ($id, $node) = each %Node) {
 	} else {
 		$color = color($colors, $hash, $func);
 	}
-	$im->filledRectangle($x1, $y1, $x2, $y2, $color, 'rx="2" ry="2" style="transition: width,x 1s;"');
+	$im->filledRectangle($x1, $y1, $x2, $y2, $color, 'rx="2" ry="2"');
 
 	my $chars = int( ($x2 - $x1) / ($fontsize * $fontwidth));
 	my $text = "";
@@ -1149,7 +1180,7 @@ while (my ($id, $node) = each %Node) {
 		$text =~ s/</&lt;/g;
 		$text =~ s/>/&gt;/g;
 	}
-	$im->stringTTF('rgba(0,0,0,0.9)', $fonttype, $fontsize, 0.0, $x1 + 3, 3 + ($y1 + $y2) / 2, $text, "left", 'style="transition: width,x 1s;"');
+	$im->stringTTF('rgba(0,0,0,0.9)', $fonttype, $fontsize, 0.0, $x1 + 3, 3 + ($y1 + $y2) / 2, $text);
 
 	$im->group_end($nameattr);
 }
