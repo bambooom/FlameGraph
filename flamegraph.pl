@@ -126,6 +126,9 @@ my $searchcolor = "rgb(230,0,230)";	# color for search highlighting
 my $notestext = "";		# embedded notes in SVG
 my $subtitletext = "";		# second level title (optional)
 my $grow = 0; 					# if displaying a growing animation from bottom
+my $growtime = 2;				# total growing animation time
+my $growfadein = 0.2;			# single rect animation fadein duration (default 0.2s)
+my $growgap = 1.5;				# gap duration between two growing animation (default 1.5s)
 my $help = 0;
 
 sub usage {
@@ -150,6 +153,9 @@ USAGE: $0 [options] infile > outfile.svg\n
 	--negate         # switch differential hues (blue<->red)
 	--notes TEXT     # add notes comment in SVG (for debugging)
 	--grow			 # if displaying a growing animation from bottom
+	--growtime NUM   # total growing animation time (default 2 seconds)
+	--growfadein NUM # single rect animation fadein duration (default 0.1s)
+	--growgap NUM    # gap duration between two growing animation (default 1.5s)
 	--help           # this message
 
 	eg,
@@ -180,6 +186,9 @@ GetOptions(
 	'negate'      => \$negate,
 	'notes=s'     => \$notestext,
 	'grow'		  => \$grow,
+	'growtime=i'  => \$growtime,
+	'growfadein=i'=> \$growfadein,
+	'growgap=i'   => \$growgap,
 	'help'        => \$help,
 ) or usage();
 $help && usage();
@@ -731,6 +740,7 @@ my $inc = <<INC;
 <script type="text/ecmascript">
 <![CDATA[
 	var details, searchbtn, matchedtxt, svg, outerGroup, rectGroup, tooltip;
+	var grow = $grow;
 	function init(evt) {
 		details = document.getElementById("details").firstChild;
 		searchbtn = document.getElementById("search");
@@ -749,6 +759,30 @@ my $inc = <<INC;
 			.on("end", zoomed));
 
 		tooltip = d3.select("foreignObject.tooltip");
+
+		if (grow) {
+			var gs = document.getElementsByClassName('func_g');
+			var valMap = new WeakMap();
+
+			function resetAnimate (g) {
+				return function() {
+					var animateVal = valMap.get(g);
+					g.attributes.style.value = animateVal;
+				}
+			}
+
+			setInterval(function() {
+				for (var g of gs) {
+					var animateVal = g.attributes.style.value;
+					valMap.set(g, animateVal);
+					g.attributes.style.value = '';
+					g.offsetHeight;
+					// need to wait for trigger reflow
+					setTimeout(resetAnimate(g), 1000);
+				}
+			}, ($growtime + $growgap)*1000);
+		}
+
 	}
 
 	function zooming() {
@@ -1186,11 +1220,12 @@ while (my ($id, $node) = each %Node) {
 	$nameattr->{class}       ||= "func_g";
 	$nameattr->{onmouseover} ||= "s(this)";
 	$nameattr->{onmouseout}  ||= "c()";
-	$nameattr->{onclick}     ||= "zoom(this)";
+	# $nameattr->{onclick}     ||= "zoom(this)";
 	$nameattr->{title}       ||= $info;
 	if ($grow) {
-		my $delay = 2 * (1 - $y1/$imageheight) . 's';
-		$nameattr->{style}       ||= "animation: fadeIn 0.1s linear $delay; animation-fill-mode: both;";
+		my $delay = $growtime * (1 - $y1/$imageheight) . 's';
+		my $fadein = $growfadein . 's';
+		$nameattr->{style}       ||= "animation: fadeIn $fadein linear $delay; animation-fill-mode: both;";
 	}
 	$im->group_start($nameattr);
 
