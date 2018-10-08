@@ -711,6 +711,7 @@ my $inc = <<INC;
 </defs>
 <style type="text/css">
 	.func_g:hover { stroke:black; stroke-width:0.5; cursor:pointer; }
+	.func_g text { user-select: none;}
 	\@keyframes fadeIn {
 		from {
   		  visibility: hidden;
@@ -719,21 +720,25 @@ my $inc = <<INC;
   		  visibility: visible;
 		}
 	}
+	.tooltip {
+		z-index: 10;
+	}
 	.tooltip-div {
 		position: absolute;
     	text-align: center;
-    	width: 240px;
+    	width: 98%;
     	height: 26px;
     	padding: 2px;
     	font: 12px sans-serif;
-    	background: #313131;
+    	background: rgba(255, 255, 255, 0.9);
     	border: 0px;
     	border-radius: 8px;
     	pointer-events: none;
-		color: white;
+		color: #313131;
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		word-break: break-all;
 	}
 </style>
 <script type="text/javascript" xlink:href="https://d3js.org/d3.v4.min.js"></script>
@@ -754,9 +759,31 @@ my $inc = <<INC;
     	// add zoom event
 		outerGroup
 			.call(d3.zoom()
-        	.scaleExtent([1, 100])
-        	.on("zoom", zooming)
-			.on("end", zoomed));
+        		.scaleExtent([1, 100])
+        		.on("zoom", zooming)
+				.on("end", zoomed))
+			.on("mouseover", function () {
+				var target = event.target;
+				var tagName = target.tagName.toUpperCase();
+				var text;
+				if (tagName == 'G') {
+					text = g_to_text(target).replace(/\\((.\* samples,\\s)/, '(');
+				} else if (tagName == 'RECT' || tagName == 'TEXT') {
+					text = g_to_text(target.parentNode).replace(/\\((.\* samples,\\s)/, '(');
+				} else {
+					console.error('ERROR: should not reach here');
+				}
+
+				tooltip.style("opacity", .9);
+				tooltip.select("p").text(text);
+			})
+			.on("mousemove", function(){
+				tooltip.attr("x", event.pageX - 10)
+					.attr("y", event.pageY + 10);
+			})
+			.on("mouseout", function(){
+				tooltip.style("opacity", 0);
+			});
 
 		tooltip = d3.select("foreignObject.tooltip");
 
@@ -823,23 +850,9 @@ my $inc = <<INC;
 	function s(node) {		// show
 		info = g_to_text(node);
 		details.nodeValue = "$nametype " + info;
-
-		// show tooltip
-		var box = node.getBoundingClientRect();
-		tooltip.transition()
-            .duration(200)
-            .style("opacity", .9);
-        tooltip.attr("x", box.x + 10)
-			.attr("y", box.y - 10)
-		document.getElementById("tooltip-text").textContent = info.replace(/\\((.\* samples,\\s)/, '(');
-
 	}
 	function c() {			// clear
 		details.nodeValue = ' ';
-		// clear tooltip
-		tooltip.transition()
-            .duration(300)
-            .style("opacity", 0);
 	}
 
 	// ctrl-F for search
@@ -1260,7 +1273,7 @@ while (my ($id, $node) = each %Node) {
 
 $im->include('</g>');
 my $tooltip = <<INC;
-<foreignObject class="tooltip" width="250" height="30" style="opacity: 0;">
+<foreignObject class="tooltip" width="165" height="30" style="opacity: 0;">
 	<div xmlns="http://www.w3.org/1999/xhtml" class="tooltip-div">
 		<p xmlns="http://www.w3.org/1999/xhtml" id="tooltip-text"></p>
 	</div>
