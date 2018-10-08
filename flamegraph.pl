@@ -126,7 +126,7 @@ my $searchcolor = "rgb(230,0,230)";	# color for search highlighting
 my $notestext = "";		# embedded notes in SVG
 my $subtitletext = "";		# second level title (optional)
 my $grow = 0; 					# if displaying a growing animation from bottom
-my $growtime = 2;				# total growing animation time
+my $growdelay = 2;				# total growing animation delay time (default 2 seconds)
 my $growfadein = 0.2;			# single rect animation fadein duration (default 0.2s)
 my $growgap = 1.5;				# gap duration between two growing animation (default 1.5s)
 my $help = 0;
@@ -153,7 +153,7 @@ USAGE: $0 [options] infile > outfile.svg\n
 	--negate         # switch differential hues (blue<->red)
 	--notes TEXT     # add notes comment in SVG (for debugging)
 	--grow			 # if displaying a growing animation from bottom
-	--growtime NUM   # total growing animation time (default 2 seconds)
+	--growdelay NUM  # total growing animation delay time (default 2 seconds)
 	--growfadein NUM # single rect animation fadein duration (default 0.1s)
 	--growgap NUM    # gap duration between two growing animation (default 1.5s)
 	--help           # this message
@@ -186,7 +186,7 @@ GetOptions(
 	'negate'      => \$negate,
 	'notes=s'     => \$notestext,
 	'grow'		  => \$grow,
-	'growtime=i'  => \$growtime,
+	'growdelay=i' => \$growdelay,
 	'growfadein=i'=> \$growfadein,
 	'growgap=i'   => \$growgap,
 	'help'        => \$help,
@@ -467,7 +467,7 @@ sub color {
 		my $b = 215 + int(40 * $v1);
 		my $r = 10 + int(150 * $v2);
 		my $g = 100 + int(130 * $v3);
-		return "rgb($r,$g,$b)";
+		return "rgba($r,$g,$b, 0.6)";
 	}
 	if (defined $type and $type eq "lightblue") {
 		my $b = 210 + int(30 * $v1);
@@ -807,7 +807,7 @@ my $inc = <<INC;
 					// need to wait for trigger reflow
 					setTimeout(resetAnimate(g), 1000);
 				}
-			}, ($growtime + $growgap)*1000);
+			}, ($growdelay + $growgap)*1000);
 		}
 
 	}
@@ -1236,7 +1236,7 @@ while (my ($id, $node) = each %Node) {
 	# $nameattr->{onclick}     ||= "zoom(this)";
 	$nameattr->{title}       ||= $info;
 	if ($grow) {
-		my $delay = $growtime * (1 - $y1/$imageheight) . 's';
+		my $delay = $growdelay * (1 - $y1/$imageheight) . 's';
 		my $fadein = $growfadein . 's';
 		$nameattr->{style}       ||= "animation: fadeIn $fadein linear $delay; animation-fill-mode: both;";
 	}
