@@ -125,6 +125,7 @@ my $titleinverted = "Icicle Graph";	#   "    "
 my $searchcolor = "rgb(230,0,230)";	# color for search highlighting
 my $notestext = "";		# embedded notes in SVG
 my $subtitletext = "";		# second level title (optional)
+my $grow = 0; 					# if displaying a growing animation from bottom
 my $help = 0;
 
 sub usage {
@@ -148,6 +149,7 @@ USAGE: $0 [options] infile > outfile.svg\n
 	--inverted       # icicle graph
 	--negate         # switch differential hues (blue<->red)
 	--notes TEXT     # add notes comment in SVG (for debugging)
+	--grow			 # if displaying a growing animation from bottom
 	--help           # this message
 
 	eg,
@@ -177,6 +179,7 @@ GetOptions(
 	'inverted'    => \$inverted,
 	'negate'      => \$negate,
 	'notes=s'     => \$notestext,
+	'grow'		  => \$grow,
 	'help'        => \$help,
 ) or usage();
 $help && usage();
@@ -793,14 +796,14 @@ my $inc = <<INC;
             .duration(200)
             .style("opacity", .9);
         tooltip.attr("x", box.x + 10)
-			.attr("y", box.y - 28)
+			.attr("y", box.y - 10)
 		document.getElementById("tooltip-text").textContent = info.replace(/\\([^(]*\\)\$/,"");
 	}
 	function c() {			// clear
 		details.nodeValue = ' ';
 		// clear tooltip
 		tooltip.transition()
-            .duration(500)
+            .duration(300)
             .style("opacity", 0);
 	}
 
@@ -1179,13 +1182,15 @@ while (my ($id, $node) = each %Node) {
 	}
 
 	my $nameattr = { %{ $nameattr{$func}||{} } }; # shallow clone
-	my $delay = 2 * (1 - $y1/$imageheight) . 's';
 	$nameattr->{class}       ||= "func_g";
 	$nameattr->{onmouseover} ||= "s(this)";
 	$nameattr->{onmouseout}  ||= "c()";
 	$nameattr->{onclick}     ||= "zoom(this)";
 	$nameattr->{title}       ||= $info;
-	$nameattr->{style}       ||= "animation: fadeIn 0.1s linear $delay; animation-fill-mode: both;";
+	if ($grow) {
+		my $delay = 2 * (1 - $y1/$imageheight) . 's';
+		$nameattr->{style}       ||= "animation: fadeIn 0.1s linear $delay; animation-fill-mode: both;";
+	}
 	$im->group_start($nameattr);
 
 	my $color;
