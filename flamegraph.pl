@@ -364,7 +364,7 @@ sub color {
 		my $r = 205 + int(50 * $v3);
 		my $g = 0 + int(230 * $v1);
 		my $b = 0 + int(55 * $v2);
-		return "rgb($r,$g,$b)";
+		return "rgba($r,$g,$b, 0.5)";
 	}
 	if (defined $type and $type eq "mem") {
 		my $r = 0;
