@@ -762,30 +762,30 @@ my $inc = <<INC;
         		.scaleExtent([1, 100])
         		.on("zoom", zooming)
 				.on("end", zoomed))
-			.on("mouseover", function () {
-				var target = event.target;
-				var tagName = target.tagName.toUpperCase();
-				var text;
-				if (tagName == 'G') {
-					text = g_to_text(target).replace(/\\((.\* samples,\\s)/, '(');
-				} else if (tagName == 'RECT' || tagName == 'TEXT') {
-					text = g_to_text(target.parentNode).replace(/\\((.\* samples,\\s)/, '(');
-				} else {
-					console.error('ERROR: should not reach here');
-				}
+			//.on("mouseover", function () {
+			//	var target = event.target;
+			//	var tagName = target.tagName.toUpperCase();
+			//	var text;
+			//	if (tagName == 'G') {
+			//		text = g_to_text(target).replace(/\\((.\* samples,\\s)/, '(');
+			//	} else if (tagName == 'RECT' || tagName == 'TEXT') {
+			//		text = g_to_text(target.parentNode).replace(/\\((.\* samples,\\s)/, '(');
+			//	} else {
+			//		console.error('ERROR: should not reach here');
+			//	}
+//
+			//	tooltip.style("opacity", .9);
+			//	tooltip.select("p").text(text);
+			//})
+			//.on("mousemove", function(){
+			//	tooltip.attr("x", event.pageX - 10)
+			//		.attr("y", event.pageY + 10);
+			//})
+			//.on("mouseout", function(){
+			//	tooltip.style("opacity", 0);
+			//});
 
-				tooltip.style("opacity", .9);
-				tooltip.select("p").text(text);
-			})
-			.on("mousemove", function(){
-				tooltip.attr("x", event.pageX - 10)
-					.attr("y", event.pageY + 10);
-			})
-			.on("mouseout", function(){
-				tooltip.style("opacity", 0);
-			});
-
-		tooltip = d3.select("foreignObject.tooltip");
+		//tooltip = d3.select("foreignObject.tooltip");
 
 		if (grow) {
 			var gs = document.getElementsByClassName('func_g');
@@ -1272,14 +1272,14 @@ while (my ($id, $node) = each %Node) {
 }
 
 $im->include('</g>');
-my $tooltip = <<INC;
-<foreignObject class="tooltip" width="165" height="30" style="opacity: 0;">
-	<div xmlns="http://www.w3.org/1999/xhtml" class="tooltip-div">
-		<p xmlns="http://www.w3.org/1999/xhtml" id="tooltip-text"></p>
-	</div>
-</foreignObject>
-INC
-$im->include($tooltip);
+# my $tooltip = <<INC;
+# <foreignObject class="tooltip" width="165" height="30" style="opacity: 0;">
+# 	<div xmlns="http://www.w3.org/1999/xhtml" class="tooltip-div">
+# 		<p xmlns="http://www.w3.org/1999/xhtml" id="tooltip-text"></p>
+# 	</div>
+# </foreignObject>
+# INC
+# $im->include($tooltip);
 print $im->svg;
 
 if ($palette) {
